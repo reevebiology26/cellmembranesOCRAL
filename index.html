@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR A-Level Biology: Biological Membranes Lab</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        science: ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: { 700: '#0f3d5e', 800: '#0a2940', 900: '#051724' },
+                        lab: { 100: '#f4f8fb', 200: '#e2edf5', 300: '#c8dceb' },
+                        cyan: { 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' },
+                        coral: { 600: '#e11d48', 700: '#be123c' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #f4f8fb; color: #0f172a; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #e2edf5; }
+        ::-webkit-scrollbar-thumb { background: #0f3d5e; border-radius: 5px; }
+        
+        /* Animations */
+        @keyframes moleculeFloat {
+            0% { transform: translateY(0px) rotate(0deg); opacity: 0.25; }
+            50% { transform: translateY(-25px) rotate(180deg); opacity: 0.55; }
+            100% { transform: translateY(0px) rotate(360deg); opacity: 0.25; }
+        }
+        @keyframes atomBounce {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px #22d3ee); }
+            50% { transform: scale(1.4) translateY(-10px); filter: drop-shadow(0 0 20px #22d3ee); }
+        }
+        @keyframes flashRed {
+            0%, 100% { filter: drop-shadow(0 0 0px #e11d48) brightness(1); }
+            50% { filter: drop-shadow(0 0 30px #e11d48) brightness(0.7) sepia(1) hue-rotate(-50deg) saturate(5); }
+        }
+        @keyframes elementShake {
+            0%, 100% { transform: translateX(0); filter: grayscale(0.5); }
+            25% { transform: translateX(-5px) rotate(-10deg); }
+            50% { transform: translateX(5px) rotate(10deg); }
+            75% { transform: translateX(-5px) rotate(-10deg); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-atom-bounce { animation: atomBounce 0.6s ease-out; }
+        .animate-flash-red { animation: flashRed 0.6s ease-in-out; }
+        .animate-shake { animation: elementShake 0.5s ease-in-out; }
+        .animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
+        
+        .science-bg {
+            background-image: 
+                radial-gradient(circle at 50% 45%, rgba(34, 211, 238, 0.22) 0%, transparent 65%),
+                linear-gradient(135deg, #0a2940 0%, #051724 100%);
+        }
+
+        /* Diagram Master Tap to Place */
+        .drop-zone { transition: all 0.2s; border: 2px dashed #0f3d5e; min-height: 44px; cursor: pointer; }
+        .drop-zone:hover { background-color: #cffafe; border-color: #0891b2; transform: scale(1.03); }
+        .tap-item { cursor: pointer; transition: transform 0.1s; }
+        .tap-item.selected { border-color: #e11d48 !important; background-color: #e11d48 !important; color: white !important; transform: scale(1.03); box-shadow: 0 0 12px rgba(225,29,72,0.45); }
+        .tap-item.correct { background-color: #059669 !important; color: white !important; border-color: #047857 !important; cursor: default; }
+        
+        .tab-btn { transition: all 0.3s; }
+        .tab-btn.active { border-bottom-width: 4px; border-color: #e11d48; color: #e11d48; background-color: #fff1f2; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen overflow-hidden" id="main-body">
+
+    <!-- SPLASH SCREEN (SCIENCE THEME) -->
+    <div id="splash-screen" class="fixed inset-0 z-50 science-bg flex flex-col items-center justify-center transition-opacity duration-1000 p-4">
+        <!-- Floating Molecular & Cellular SVG Icons -->
+        <div class="fixed inset-0 pointer-events-none overflow-hidden">
+            <i class="ph-bold ph-dna text-cyan-400 text-5xl absolute" style="top:14%; left:12%; animation: moleculeFloat 8s ease-in-out infinite;"></i>
+            <i class="ph-bold ph-atom text-cyan-400 text-6xl absolute" style="top:22%; right:15%; animation: moleculeFloat 10s ease-in-out infinite 1.5s;"></i>
+            <i class="ph-bold ph-flask text-cyan-400 text-4xl absolute" style="bottom:18%; left:18%; animation: moleculeFloat 9s ease-in-out infinite 3s;"></i>
+            <i class="ph-bold ph-microscope text-cyan-400 text-5xl absolute" style="bottom:22%; right:14%; animation: moleculeFloat 11s ease-in-out infinite 2s;"></i>
+            <i class="ph-bold ph-circles-three-plus text-cyan-400 text-4xl absolute" style="top:50%; left:8%; animation: moleculeFloat 7s ease-in-out infinite 0.5s;"></i>
+        </div>
+        
+        <div class="relative z-10 text-center flex flex-col items-center max-w-3xl bg-navy-900/85 p-8 sm:p-10 rounded-3xl border-4 border-cyan-400 shadow-[0_0_50px_rgba(34,211,238,0.3)] backdrop-blur-md">
+            <div class="bg-cyan-500/20 p-4 rounded-2xl border border-cyan-400/50 mb-4">
+                <i class="ph-fill ph-atom text-6xl text-cyan-400 animate-pulse"></i>
+            </div>
+            <h2 class="text-cyan-400 font-bold tracking-widest uppercase text-sm mb-2">OCR A A-Level Biology • Module 2.1.5</h2>
+            <h1 class="font-science text-4xl sm:text-6xl md:text-7xl text-white mb-4 tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Biological<br>Membranes Lab</h1>
+            <p class="text-cyan-400 font-bold tracking-widest uppercase text-sm mb-6 bg-navy-800/90 px-5 py-1.5 rounded-full border border-cyan-500/50 shadow-inner">By Mr Reeve</p>
+            <p class="text-lab-200 font-medium mb-8 text-base sm:text-lg max-w-xl">Master the fluid mosaic model, transport mechanisms, osmosis, and PAG 8 in this rigorous revision laboratory.</p>
+            
+            <button onclick="enterApp()" class="bg-coral-600 hover:bg-coral-700 text-white font-bold text-xl py-4 px-10 rounded-full shadow-[0_0_25px_rgba(225,29,72,0.6)] transition-all transform hover:scale-105 hover:-translate-y-1 flex items-center gap-3 border-2 border-coral-700 cursor-pointer">
+                <i class="ph-bold ph-play"></i> Launch Revision Lab
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN HEADER -->
+    <header class="bg-white shadow-md z-40 sticky top-0 border-b border-lab-300 hidden" id="app-header">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-navy-800 p-2.5 rounded-xl text-cyan-400 shadow-inner"><i class="ph-fill ph-atom text-2xl"></i></div>
+                <div>
+                    <h1 class="font-bold text-xl text-navy-900 leading-tight">Biological Membranes Masterclass</h1>
+                    <p class="text-coral-600 text-xs font-bold uppercase tracking-wider">OCR A Specification (2.1.5) • By Mr Reeve</p>
+                </div>
+            </div>
+            
+            <!-- Gamified Streak -->
+            <div id="streak-container" class="bg-lab-100 border border-lab-300 px-4 py-1.5 rounded-full flex items-center gap-3 shadow-sm transition-colors duration-300">
+                <span id="streak-icon" class="text-3xl drop-shadow-md transition-transform duration-200">🧬</span>
+                <span class="text-sm font-bold text-navy-800 uppercase">Streak: <span id="streak-counter" class="text-xl text-coral-600 font-black ml-1">0</span></span>
+            </div>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <div class="flex overflow-x-auto bg-lab-100 scrollbar-hide border-t border-lab-200 shadow-inner">
+            <div class="max-w-7xl mx-auto w-full flex">
+                <button onclick="switchTab('match')" id="nav-match" class="tab-btn active flex items-center gap-2 px-5 py-4 font-bold text-sm whitespace-nowrap"><i class="ph-bold ph-arrows-merge text-lg"></i> Mix & Match</button>
+                <button onclick="switchTab('quiz')" id="nav-quiz" class="tab-btn flex items-center gap-2 px-5 py-4 font-bold text-sm whitespace-nowrap text-navy-700 hover:bg-lab-200"><i class="ph-bold ph-list-checks text-lg"></i> Knowledge Quiz</button>
+                <button onclick="switchTab('long')" id="nav-long" class="tab-btn flex items-center gap-2 px-5 py-4 font-bold text-sm whitespace-nowrap text-navy-700 hover:bg-lab-200"><i class="ph-bold ph-pen-nib text-lg"></i> 6-Mark Questions</button>
+                <button onclick="switchTab('diagram')" id="nav-diagram" class="tab-btn flex items-center gap-2 px-5 py-4 font-bold text-sm whitespace-nowrap text-navy-700 hover:bg-lab-200"><i class="ph-bold ph-blueprint text-lg"></i> Membrane Labeller</button>
+                <button onclick="switchTab('resources')" id="nav-resources" class="tab-btn flex items-center gap-2 px-5 py-4 font-bold text-sm whitespace-nowrap text-navy-700 hover:bg-lab-200"><i class="ph-bold ph-video-camera text-lg"></i> Exam Prep</button>
+                <button onclick="switchTab('dash')" id="nav-dash" class="tab-btn flex items-center gap-2 px-5 py-4 font-bold text-sm whitespace-nowrap text-navy-700 hover:bg-lab-200"><i class="ph-bold ph-chart-polar text-lg"></i> Dashboard</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow max-w-6xl mx-auto w-full p-4 sm:p-6 pb-24 hidden relative" id="main-content">
+        
+        <!-- Tab 1: Mix & Match -->
+        <div id="tab-match" class="tab-content active animate-slide-in">
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-lab-300">
+                <div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border-b border-lab-200 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-navy-800 flex items-center gap-2"><i class="ph-fill ph-arrows-merge text-coral-600"></i> Membrane Terminology</h2>
+                        <p class="text-gray-500 text-sm mt-1">Match the OCR A-Level terms to their exact specification definitions. (Round <span id="match-round" class="font-bold text-navy-800">1</span> of 3)</p>
+                    </div>
+                    <div class="font-bold text-navy-800 bg-lab-200 px-4 py-2 rounded-lg self-start sm:self-auto">Score: <span id="match-score" class="text-coral-600">0</span> / 18</div>
+                </div>
+                
+                <div id="match-complete" class="hidden text-center py-10 bg-emerald-50 border border-emerald-500 rounded-xl text-emerald-800">
+                    <i class="ph-fill ph-check-circle text-6xl mb-2 text-emerald-600"></i>
+                    <h3 class="text-2xl font-bold">Membrane Terminology Mastered!</h3>
+                </div>
+
+                <div id="match-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-3" id="match-col-q"></div>
+                    <div class="space-y-3" id="match-col-a"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Quiz -->
+        <div id="tab-quiz" class="tab-content animate-slide-in">
+            <div class="max-w-3xl mx-auto bg-navy-900 p-6 sm:p-8 rounded-2xl shadow-xl text-white border-2 border-cyan-500">
+                <div class="mb-6 flex justify-between items-end border-b border-navy-700 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold flex items-center gap-2 text-cyan-400"><i class="ph-fill ph-list-checks"></i> Specification Quiz Engine</h2>
+                        <p class="text-lab-300 text-sm mt-1">Incorrect answers return at the end until 100% mastery is achieved.</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-cyan-400 font-bold uppercase tracking-wider">Mastered</div>
+                        <div class="text-3xl font-black text-white" id="quiz-progress">0 / 30</div>
+                    </div>
+                </div>
+                
+                <div id="quiz-complete" class="hidden text-center py-10">
+                    <i class="ph-fill ph-atom text-7xl text-cyan-400 mb-4 animate-bounce"></i>
+                    <h3 class="text-3xl font-bold mb-2">100% Specification Mastery</h3>
+                    <p class="text-lab-300">You conquered the Biological Membranes quiz.</p>
+                </div>
+
+                <div id="quiz-container">
+                    <h3 class="text-xl font-medium mb-8 leading-relaxed" id="quiz-question">Loading...</h3>
+                    <div class="space-y-3" id="quiz-options"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: 6-Mark Qs -->
+        <div id="tab-long" class="tab-content animate-slide-in">
+            <div class="mb-6 border-b border-lab-300 pb-4">
+                <h2 class="text-2xl font-bold text-navy-800 flex items-center gap-2"><i class="ph-fill ph-pen-nib text-coral-600"></i> Extended Response (6-Mark Past Paper Style)</h2>
+                <p class="text-gray-500 text-sm mt-1">Answer the classic OCR A 6-mark questions, then self-assess against leveled model mark schemes.</p>
+            </div>
+            <div id="long-list" class="space-y-8"></div>
+        </div>
+
+        <!-- Tab 4: Cell Membrane Diagram Labeller (Replacing Graph Master) -->
+        <div id="tab-diagram" class="tab-content animate-slide-in">
+            <div class="mb-6 border-b border-lab-300 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3">
+                <div>
+                    <h2 class="text-2xl font-bold text-navy-800 flex items-center gap-2"><i class="ph-fill ph-blueprint text-cyan-600"></i> Fluid Mosaic Membrane Labeller</h2>
+                    <p class="text-gray-500 text-sm mt-1">Tap a membrane component on the right, then tap the matching numbered zone on the cell membrane diagram. (10 labels total)</p>
+                </div>
+                <div class="font-bold text-navy-800 bg-lab-200 px-4 py-2 rounded-lg self-start sm:self-auto">Score: <span id="diagram-score" class="text-coral-600">0</span> / 10</div>
+            </div>
+            
+            <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-lab-300">
+                <div class="flex flex-col xl:flex-row gap-6">
+                    <!-- Interactive Cell Membrane Diagram Area -->
+                    <div class="flex-1 bg-lab-100 rounded-2xl p-3 border border-lab-300 relative overflow-hidden">
+                        <div class="flex justify-between text-xs font-bold uppercase tracking-wider text-navy-700 mb-2 px-2">
+                            <span>Extracellular Fluid (Outside Cell)</span>
+                            <span class="text-cyan-700">Fluid Mosaic Model</span>
+                        </div>
+
+                        <!-- Responsive SVG Diagram of Cell Surface Membrane with Numbered Callouts 1-10 -->
+                        <div class="w-full overflow-x-auto">
+                            <svg viewBox="0 0 820 480" class="w-full h-auto min-w-[600px] bg-white rounded-xl border border-lab-200 shadow-inner">
+                                <defs>
+                                    <!-- Phospholipid Head Gradient -->
+                                    <radialGradient id="headGrad" cx="35%" cy="35%" r="65%">
+                                        <stop offset="0%" stop-color="#38bdf8"/>
+                                        <stop offset="100%" stop-color="#0284c7"/>
+                                    </radialGradient>
+                                    <!-- Intrinsic Protein Gradient -->
+                                    <linearGradient id="protGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#a855f7"/>
+                                        <stop offset="100%" stop-color="#6b21a8"/>
+                                    </linearGradient>
+                                    <!-- Channel Protein Gradient -->
+                                    <linearGradient id="chanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#f43f5e"/>
+                                        <stop offset="100%" stop-color="#be123c"/>
+                                    </linearGradient>
+                                </defs>
+
+                                <!-- Background Regions -->
+                                <rect x="0" y="0" width="820" height="175" fill="#f0f9ff" opacity="0.6"/>
+                                <rect x="0" y="305" width="820" height="175" fill="#f8fafc" opacity="0.8"/>
+
+                                <!-- PHOSPHOLIPID BILAYER -->
+                                <!-- Left Segment (x: 40 to 180) -->
+                                <g id="bilayer-left">
+                                    <!-- Top heads + tails -->
+                                    <circle cx="55" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M51 197 Q48 215 52 235 M59 197 Q62 215 58 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="83" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M79 197 Q76 215 80 235 M87 197 Q90 215 86 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="111" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M107 197 Q104 215 108 235 M115 197 Q118 215 114 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="139" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M135 197 Q132 215 136 235 M143 197 Q146 215 142 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="167" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M163 197 Q160 215 164 235 M171 197 Q174 215 170 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+
+                                    <!-- Bottom heads + tails -->
+                                    <circle cx="55" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M51 283 Q48 265 52 245 M59 283 Q62 265 58 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="83" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M79 283 Q76 265 80 245 M87 283 Q90 265 86 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="111" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M107 283 Q104 265 108 245 M115 283 Q118 265 114 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="139" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M135 283 Q132 265 136 245 M143 283 Q146 265 142 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="167" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M163 283 Q160 265 164 245 M171 283 Q174 265 170 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                </g>
+
+                                <!-- Glycolipid Carbohydrate Chain attached to phospholipid at x=111 -->
+                                <g stroke="#10b981" stroke-width="3" fill="#34d399">
+                                    <line x1="111" y1="173" x2="111" y2="145"/>
+                                    <line x1="111" y1="145" x2="95" y2="128"/>
+                                    <line x1="111" y1="145" x2="127" y2="128"/>
+                                    <polygon points="111,154 117,160 111,166 105,160"/>
+                                    <polygon points="111,136 117,142 111,148 105,142"/>
+                                    <polygon points="95,120 101,126 95,132 89,126"/>
+                                    <polygon points="127,120 133,126 127,132 121,126"/>
+                                </g>
+
+                                <!-- Channel Protein (x: 192 to 258) -->
+                                <g>
+                                    <rect x="192" y="162" width="24" height="156" rx="12" fill="url(#chanGrad)" stroke="#881337" stroke-width="2"/>
+                                    <rect x="234" y="162" width="24" height="156" rx="12" fill="url(#chanGrad)" stroke="#881337" stroke-width="2"/>
+                                    <!-- Hydrophilic Pore Arrow -->
+                                    <path d="M225 148 L225 332" stroke="#0891b2" stroke-width="2.5" stroke-dasharray="5,4"/>
+                                    <polygon points="225,338 220,328 230,328" fill="#0891b2"/>
+                                </g>
+
+                                <!-- Middle Segment (x: 278 to 475) -->
+                                <g id="bilayer-mid">
+                                    <!-- Top heads + tails -->
+                                    <circle cx="280" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M276 197 Q273 215 277 235 M284 197 Q287 215 283 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="308" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M304 197 Q301 215 305 235 M312 197 Q315 215 311 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="336" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M332 197 Q329 215 333 235 M340 197 Q343 215 339 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="364" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M360 197 Q357 215 361 235 M368 197 Q371 215 367 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="392" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M388 197 Q385 215 389 235 M396 197 Q399 215 395 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="420" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M416 197 Q413 215 417 235 M424 197 Q427 215 423 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="448" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M444 197 Q441 215 445 235 M452 197 Q455 215 451 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="476" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M472 197 Q469 215 473 235 M480 197 Q483 215 479 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+
+                                    <!-- Bottom heads + tails -->
+                                    <circle cx="280" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M276 283 Q273 265 277 245 M284 283 Q287 265 283 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="308" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M304 283 Q301 265 305 245 M312 283 Q315 265 311 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="336" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M332 283 Q329 265 333 245 M340 283 Q343 265 339 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="364" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M360 283 Q357 265 361 245 M368 283 Q371 265 367 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="392" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M388 283 Q385 265 389 245 M396 283 Q399 265 395 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="420" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M416 283 Q413 265 417 245 M424 283 Q427 265 423 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="448" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M444 283 Q441 265 445 245 M452 283 Q455 265 451 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="476" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M472 283 Q469 265 473 245 M480 283 Q483 265 479 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                </g>
+
+                                <!-- Cholesterol Molecules tucked between tails -->
+                                <g fill="#eab308" stroke="#a16207" stroke-width="1.5">
+                                    <polygon points="322,202 328,210 325,222 319,222 316,210"/>
+                                    <polygon points="434,258 440,266 437,278 431,278 428,266"/>
+                                </g>
+
+                                <!-- Intrinsic / Transmembrane Glycoprotein (x: 500 to 565) -->
+                                <g>
+                                    <rect x="502" y="160" width="62" height="160" rx="28" fill="url(#protGrad)" stroke="#4c1d95" stroke-width="2.5"/>
+                                    <!-- Glycoprotein Carbohydrate Branching Chain -->
+                                    <g stroke="#f97316" stroke-width="3" fill="#fb923c">
+                                        <line x1="533" y1="160" x2="533" y2="128"/>
+                                        <line x1="533" y1="128" x2="515" y2="108"/>
+                                        <line x1="533" y1="128" x2="552" y2="112"/>
+                                        <circle cx="533" cy="146" r="5"/>
+                                        <circle cx="533" cy="128" r="5"/>
+                                        <circle cx="515" cy="108" r="5"/>
+                                        <circle cx="552" cy="112" r="5"/>
+                                    </g>
+                                </g>
+
+                                <!-- Right Segment (x: 585 to 770) -->
+                                <g id="bilayer-right">
+                                    <circle cx="590" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M586 197 Q583 215 587 235 M594 197 Q597 215 593 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="618" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M614 197 Q611 215 615 235 M622 197 Q625 215 621 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="646" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M642 197 Q639 215 643 235 M650 197 Q653 215 649 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="674" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M670 197 Q667 215 671 235 M678 197 Q681 215 677 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="702" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M698 197 Q695 215 699 235 M706 197 Q709 215 705 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="730" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M726 197 Q723 215 727 235 M734 197 Q737 215 733 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="758" cy="185" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M754 197 Q751 215 755 235 M762 197 Q765 215 761 235" stroke="#d97706" stroke-width="2.2" fill="none"/>
+
+                                    <!-- Bottom heads + tails -->
+                                    <circle cx="590" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M586 283 Q583 265 587 245 M594 283 Q597 265 593 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="618" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M614 283 Q611 265 615 245 M622 283 Q625 265 621 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="646" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M642 283 Q639 265 643 245 M650 283 Q653 265 649 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="674" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M670 283 Q667 265 671 245 M678 283 Q681 265 677 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="702" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M698 283 Q695 265 699 245 M706 283 Q709 265 705 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="730" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M726 283 Q723 265 727 245 M734 283 Q737 265 733 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                    <circle cx="758" cy="295" r="12" fill="url(#headGrad)" stroke="#0369a1" stroke-width="1.5"/>
+                                    <path d="M754 283 Q751 265 755 245 M762 283 Q765 265 761 245" stroke="#d97706" stroke-width="2.2" fill="none"/>
+                                </g>
+
+                                <!-- Extrinsic / Peripheral Protein on Intracellular Surface (x: 625 to 710) -->
+                                <ellipse cx="668" cy="324" rx="42" ry="18" fill="#14b8a6" stroke="#0f766e" stroke-width="2"/>
+
+                                <!-- Cytoskeleton Filaments inside Cytoplasm -->
+                                <path d="M350 430 Q480 350 655 342" stroke="#64748b" stroke-width="4" stroke-linecap="round" fill="none"/>
+                                <path d="M420 450 Q550 370 680 342" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+                                <!-- NUMBERED CALLOUT LINES & BADGES (1 to 10) -->
+                                <!-- 1: Glycolipid -->
+                                <line x1="95" y1="120" x2="75" y2="62" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="75" cy="52" r="18" fill="#0f3d5e" stroke="#22d3ee" stroke-width="2.5"/>
+                                <text x="75" y="58" text-anchor="middle" fill="#ffffff" font-weight="bold" font-size="16">1</text>
+
+                                <!-- 2: Channel Protein -->
+                                <line x1="210" y1="162" x2="210" y2="62" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="210" cy="52" r="18" fill="#0f3d5e" stroke="#22d3ee" stroke-width="2.5"/>
+                                <text x="210" y="58" text-anchor="middle" fill="#ffffff" font-weight="bold" font-size="16">2</text>
+
+                                <!-- 3: Cholesterol -->
+                                <line x1="322" y1="205" x2="345" y2="62" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="345" cy="52" r="18" fill="#0f3d5e" stroke="#22d3ee" stroke-width="2.5"/>
+                                <text x="345" y="58" text-anchor="middle" fill="#ffffff" font-weight="bold" font-size="16">3</text>
+
+                                <!-- 4: Glycoprotein -->
+                                <line x1="533" y1="112" x2="500" y2="62" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="500" cy="52" r="18" fill="#0f3d5e" stroke="#22d3ee" stroke-width="2.5"/>
+                                <text x="500" y="58" text-anchor="middle" fill="#ffffff" font-weight="bold" font-size="16">4</text>
+
+                                <!-- 5: Hydrophilic Phosphate Head -->
+                                <line x1="674" y1="173" x2="674" y2="62" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="674" cy="52" r="18" fill="#0f3d5e" stroke="#22d3ee" stroke-width="2.5"/>
+                                <text x="674" y="58" text-anchor="middle" fill="#ffffff" font-weight="bold" font-size="16">5</text>
+
+                                <!-- 6: Hydrophobic Fatty Acid Tails -->
+                                <line x1="86" y1="240" x2="86" y2="410" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="86" cy="422" r="18" fill="#0f3d5e" stroke="#22d3ee" stroke-width="2.5"/>
+                                <text x="86" y="428" text-anchor="middle" fill="#ffffff" font-weight="bold" font-size="16">6</text>
+
+                                <!-- 7: Phospholipid Bilayer (Bracket) -->
+                                <path d="M265 182 L255 182 L255 298 L265 298" fill="none" stroke="#0f172a" stroke-width="2"/>
+                                <line x1="255" y1="240" x2="225" y2="410" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="225" cy="422" r="18" fill="#0f3d5e" stroke="#22d3ee" stroke-width="2.5"/>
+                                <text x="225" y="428" text-anchor="middle" fill="#ffffff" font-weight="bold" font-size="16">7</text>
+
+                                <!-- 8: Cytoskeleton Filament -->
+                                <line x1="435" y1="410" x2="375" y2="422" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="365" cy="422" r="18" fill="#0f3d5e" stroke="#22d3ee" stroke-width="2.5"/>
+                                <text x="365" y="428" text-anchor="middle" fill="#ffffff" font-weight="bold" font-size="16">8</text>
+
+                                <!-- 9: Intrinsic (Integral) Protein -->
+                                <line x1="533" y1="320" x2="533" y2="404" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="533" cy="422" r="18" fill="#0f3d5e" stroke="#22d3ee" stroke-width="2.5"/>
+                                <text x="533" y="428" text-anchor="middle" fill="#ffffff" font-weight="bold" font-size="16">9</text>
+
+                                <!-- 10: Extrinsic (Peripheral) Protein -->
+                                <line x1="680" y1="340" x2="700" y2="404" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="705" cy="422" r="18" fill="#0f3d5e" stroke="#22d3ee" stroke-width="2.5"/>
+                                <text x="705" y="428" text-anchor="middle" fill="#ffffff" font-weight="bold" font-size="16">10</text>
+                            </svg>
+                        </div>
+
+                        <div class="flex justify-between text-xs font-bold uppercase tracking-wider text-navy-700 mt-2 px-2">
+                            <span>Cytoplasm / Intracellular Fluid (Inside Cell)</span>
+                            <span>Match Numbers 1–10 Below</span>
+                        </div>
+
+                        <!-- Numbered Drop Zones Grid (1 to 10) -->
+                        <div class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2.5" id="diagram-zones">
+                            <div class="drop-zone bg-white p-2 rounded-xl flex flex-col items-center justify-center text-center shadow-sm" onclick="handleZoneClick(1, this)">
+                                <span class="text-xs font-black text-cyan-600 mb-1">Number 1</span>
+                                <span class="text-[11px] font-bold text-gray-400">Tap to assign</span>
+                            </div>
+                            <div class="drop-zone bg-white p-2 rounded-xl flex flex-col items-center justify-center text-center shadow-sm" onclick="handleZoneClick(2, this)">
+                                <span class="text-xs font-black text-cyan-600 mb-1">Number 2</span>
+                                <span class="text-[11px] font-bold text-gray-400">Tap to assign</span>
+                            </div>
+                            <div class="drop-zone bg-white p-2 rounded-xl flex flex-col items-center justify-center text-center shadow-sm" onclick="handleZoneClick(3, this)">
+                                <span class="text-xs font-black text-cyan-600 mb-1">Number 3</span>
+                                <span class="text-[11px] font-bold text-gray-400">Tap to assign</span>
+                            </div>
+                            <div class="drop-zone bg-white p-2 rounded-xl flex flex-col items-center justify-center text-center shadow-sm" onclick="handleZoneClick(4, this)">
+                                <span class="text-xs font-black text-cyan-600 mb-1">Number 4</span>
+                                <span class="text-[11px] font-bold text-gray-400">Tap to assign</span>
+                            </div>
+                            <div class="drop-zone bg-white p-2 rounded-xl flex flex-col items-center justify-center text-center shadow-sm" onclick="handleZoneClick(5, this)">
+                                <span class="text-xs font-black text-cyan-600 mb-1">Number 5</span>
+                                <span class="text-[11px] font-bold text-gray-400">Tap to assign</span>
+                            </div>
+                            <div class="drop-zone bg-white p-2 rounded-xl flex flex-col items-center justify-center text-center shadow-sm" onclick="handleZoneClick(6, this)">
+                                <span class="text-xs font-black text-cyan-600 mb-1">Number 6</span>
+                                <span class="text-[11px] font-bold text-gray-400">Tap to assign</span>
+                            </div>
+                            <div class="drop-zone bg-white p-2 rounded-xl flex flex-col items-center justify-center text-center shadow-sm" onclick="handleZoneClick(7, this)">
+                                <span class="text-xs font-black text-cyan-600 mb-1">Number 7</span>
+                                <span class="text-[11px] font-bold text-gray-400">Tap to assign</span>
+                            </div>
+                            <div class="drop-zone bg-white p-2 rounded-xl flex flex-col items-center justify-center text-center shadow-sm" onclick="handleZoneClick(8, this)">
+                                <span class="text-xs font-black text-cyan-600 mb-1">Number 8</span>
+                                <span class="text-[11px] font-bold text-gray-400">Tap to assign</span>
+                            </div>
+                            <div class="drop-zone bg-white p-2 rounded-xl flex flex-col items-center justify-center text-center shadow-sm" onclick="handleZoneClick(9, this)">
+                                <span class="text-xs font-black text-cyan-600 mb-1">Number 9</span>
+                                <span class="text-[11px] font-bold text-gray-400">Tap to assign</span>
+                            </div>
+                            <div class="drop-zone bg-white p-2 rounded-xl flex flex-col items-center justify-center text-center shadow-sm" onclick="handleZoneClick(10, this)">
+                                <span class="text-xs font-black text-cyan-600 mb-1">Number 10</span>
+                                <span class="text-[11px] font-bold text-gray-400">Tap to assign</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Label Bank (Shuffled 1 to 10) -->
+                    <div class="w-full xl:w-80 flex flex-col gap-2" id="diagram-label-bank">
+                        <div class="text-xs font-bold uppercase tracking-wider text-navy-800 mb-1 bg-lab-200 px-3 py-2 rounded-lg">1. Select a Membrane Part:</div>
+                        <div class="tap-item bg-navy-800 text-white p-2.5 rounded-xl shadow text-xs font-semibold border border-navy-900" onclick="handleLabelClick(4, this)">Glycoprotein (Cell signalling & receptor)</div>
+                        <div class="tap-item bg-navy-800 text-white p-2.5 rounded-xl shadow text-xs font-semibold border border-navy-900" onclick="handleLabelClick(7, this)">Phospholipid bilayer (7nm thick barrier)</div>
+                        <div class="tap-item bg-navy-800 text-white p-2.5 rounded-xl shadow text-xs font-semibold border border-navy-900" onclick="handleLabelClick(1, this)">Glycolipid (Cell recognition & stability)</div>
+                        <div class="tap-item bg-navy-800 text-white p-2.5 rounded-xl shadow text-xs font-semibold border border-navy-900" onclick="handleLabelClick(10, this)">Extrinsic / Peripheral protein</div>
+                        <div class="tap-item bg-navy-800 text-white p-2.5 rounded-xl shadow text-xs font-semibold border border-navy-900" onclick="handleLabelClick(3, this)">Cholesterol (Regulates membrane fluidity)</div>
+                        <div class="tap-item bg-navy-800 text-white p-2.5 rounded-xl shadow text-xs font-semibold border border-navy-900" onclick="handleLabelClick(6, this)">Hydrophobic fatty acid tails</div>
+                        <div class="tap-item bg-navy-800 text-white p-2.5 rounded-xl shadow text-xs font-semibold border border-navy-900" onclick="handleLabelClick(2, this)">Channel protein (Facilitated diffusion)</div>
+                        <div class="tap-item bg-navy-800 text-white p-2.5 rounded-xl shadow text-xs font-semibold border border-navy-900" onclick="handleLabelClick(9, this)">Intrinsic / Integral transmembrane protein</div>
+                        <div class="tap-item bg-navy-800 text-white p-2.5 rounded-xl shadow text-xs font-semibold border border-navy-900" onclick="handleLabelClick(5, this)">Hydrophilic phosphate head</div>
+                        <div class="tap-item bg-navy-800 text-white p-2.5 rounded-xl shadow text-xs font-semibold border border-navy-900" onclick="handleLabelClick(8, this)">Cytoskeleton filament (Mechanical support)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Resources & YouTube Links -->
+        <div id="tab-resources" class="tab-content animate-slide-in">
+            <div class="mb-6 border-b border-lab-300 pb-4">
+                <h2 class="text-2xl font-bold text-navy-800 flex items-center gap-2"><i class="ph-fill ph-video-camera text-coral-600"></i> Exam Prep & PAG Resources</h2>
+                <p id="resources-intro" class="text-gray-500 text-sm mt-1">Complete your action plan to unlock OCR A past papers, YouTube tutorials, and PAG 8 guides.</p>
+            </div>
+            
+            <div id="action-plan-section" class="bg-white p-6 rounded-2xl shadow-sm border border-lab-300 mb-6">
+                <h3 class="text-xl font-bold text-navy-900 mb-2">Identify how you could improve your score:</h3>
+                <p class="text-sm text-gray-500 mb-6">Select your next steps to earn action plan bonus marks on your final scorecard.</p>
+                
+                <div class="space-y-4 mb-6">
+                    <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="chk-pastPapers" onchange="toggleAction('pastPapers')" class="w-5 h-5 text-navy-700 rounded border-gray-300"> <span class="font-medium text-gray-800">OCR A Module 2.1.5 Past paper questions</span></label>
+                    
+                    <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="chk-rewatchPAGs" onchange="toggleAction('rewatchPAGs')" class="w-5 h-5 text-navy-700 rounded border-gray-300"> <span class="font-medium text-gray-800">Rewatching PAG 5 (Colorimeter/Beetroot) & PAG 8 (Osmosis)</span></label>
+                    
+                    <div>
+                        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="chk-flashcards" onchange="toggleAction('flashcards')" class="w-5 h-5 text-navy-700 rounded border-gray-300"> <span class="font-medium text-gray-800">Flash cards based on long answer questions</span></label>
+                        <div id="input-flashcards" class="hidden ml-8 mt-2"><input type="text" id="val-flashcards" placeholder="Which long answer was weakest?" class="w-full sm:w-2/3 p-2 border border-lab-300 rounded outline-none focus:border-cyan-500 text-sm"></div>
+                    </div>
+                    
+                    <div>
+                        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="chk-glossary" onchange="toggleAction('glossary')" class="w-5 h-5 text-navy-700 rounded border-gray-300"> <span class="font-medium text-gray-800">Writing down a glossary of key words and definitions</span></label>
+                        <div id="input-glossary" class="hidden ml-8 mt-2"><input type="text" id="val-glossary" placeholder="Name 3 words you have struggled with..." class="w-full sm:w-2/3 p-2 border border-lab-300 rounded outline-none focus:border-cyan-500 text-sm"></div>
+                    </div>
+                    
+                    <div>
+                        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="chk-copyWork" onchange="toggleAction('copyWork')" class="w-5 h-5 text-navy-700 rounded border-gray-300"> <span class="font-medium text-gray-800">Copying up missed work</span></label>
+                        <div id="input-copyWork" class="hidden ml-8 mt-2 flex flex-col sm:flex-row gap-2">
+                            <input type="text" id="val-copyWho" placeholder="Who will you copy from?" class="w-full sm:w-1/3 p-2 border border-lab-300 rounded outline-none focus:border-cyan-500 text-sm">
+                            <input type="date" id="val-copyDate" class="w-full sm:w-1/3 p-2 border border-lab-300 rounded outline-none focus:border-cyan-500 text-sm text-gray-600">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="chk-seeTeacher" onchange="toggleAction('seeTeacher')" class="w-5 h-5 text-navy-700 rounded border-gray-300"> <span class="font-medium text-gray-800">Approaching Mr Reeve independently for help</span></label>
+                        <div id="input-seeTeacher" class="hidden ml-8 mt-2"><input type="date" id="val-seeTeacher" class="w-full sm:w-1/3 p-2 border border-lab-300 rounded outline-none focus:border-cyan-500 text-sm text-gray-600"></div>
+                    </div>
+                    
+                    <label class="flex items-center gap-3 cursor-pointer mt-4 pt-4 border-t border-lab-200"><input type="checkbox" id="chk-none" onchange="toggleAction('none')" class="w-5 h-5 text-coral-600 rounded border-gray-300"> <span class="font-bold text-gray-500">None of the above</span></label>
+                </div>
+                
+                <button onclick="submitActionPlan()" class="bg-navy-800 hover:bg-navy-900 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer">Submit Action Plan & Reveal Resources <i class="ph-bold ph-lock-open"></i></button>
+            </div>
+            
+            <div id="resources-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+                <!-- PMT Past Papers -->
+                <a href="https://www.physicsandmathstutor.com/biology-revision/a-level-ocr-a/module-2/" target="_blank" rel="noopener noreferrer" class="bg-white p-6 rounded-2xl border-2 border-lab-300 hover:border-navy-700 transition-colors group shadow-sm flex flex-col items-center text-center">
+                    <div class="bg-sky-100 p-4 rounded-full mb-4 text-navy-800 group-hover:scale-110 transition-transform"><i class="ph-fill ph-exam text-4xl"></i></div>
+                    <h3 class="font-bold text-xl mb-2 text-navy-900">Physics & Maths Tutor</h3>
+                    <p class="text-sm text-gray-500 mb-4">Official OCR A Module 2.1.5 Biological Membranes past paper questions and mark schemes.</p>
+                    <span class="text-navy-800 font-bold text-sm uppercase tracking-wider flex items-center gap-1 mt-auto">Open Past Papers <i class="ph-bold ph-arrow-up-right"></i></span>
+                </a>
+
+                <!-- Free Science Lessons: Fluid Mosaic Model -->
+                <a href="https://www.youtube.com/results?search_query=freesciencelessons+fluid+mosaic+model+a+level+biology" target="_blank" rel="noopener noreferrer" class="bg-white p-6 rounded-2xl border-2 border-lab-300 hover:border-coral-600 transition-colors group shadow-sm flex flex-col items-center text-center">
+                    <div class="bg-rose-100 p-4 rounded-full mb-4 text-coral-600 group-hover:scale-110 transition-transform"><i class="ph-fill ph-youtube-logo text-4xl"></i></div>
+                    <h3 class="font-bold text-xl mb-2 text-navy-900">FSL: Fluid Mosaic Model</h3>
+                    <p class="text-sm text-gray-500 mb-4">Concise A-Level specification breakdown of phospholipids, cholesterol, glycolipids, and proteins.</p>
+                    <span class="text-coral-600 font-bold text-sm uppercase tracking-wider flex items-center gap-1 mt-auto">Watch on YouTube <i class="ph-bold ph-arrow-up-right"></i></span>
+                </a>
+
+                <!-- Bozeman Science: Cell Membranes -->
+                <a href="https://www.youtube.com/watch?v=S7CJ7xZOjm0" target="_blank" rel="noopener noreferrer" class="bg-white p-6 rounded-2xl border-2 border-lab-300 hover:border-cyan-600 transition-colors group shadow-sm flex flex-col items-center text-center">
+                    <div class="bg-cyan-100 p-4 rounded-full mb-4 text-cyan-700 group-hover:scale-110 transition-transform"><i class="ph-fill ph-video text-4xl"></i></div>
+                    <h3 class="font-bold text-xl mb-2 text-navy-900">Bozeman: Cell Membranes</h3>
+                    <p class="text-sm text-gray-500 mb-4">Deep-dive visual walkthrough of membrane structure, selective permeability, and transport.</p>
+                    <span class="text-cyan-700 font-bold text-sm uppercase tracking-wider flex items-center gap-1 mt-auto">Watch on YouTube <i class="ph-bold ph-arrow-up-right"></i></span>
+                </a>
+
+                <!-- Miss Estruch: Transport Across Membranes -->
+                <a href="https://www.youtube.com/results?search_query=miss+estruch+transport+across+cell+membranes+a+level+biology" target="_blank" rel="noopener noreferrer" class="bg-white p-6 rounded-2xl border-2 border-lab-300 hover:border-purple-600 transition-colors group shadow-sm flex flex-col items-center text-center">
+                    <div class="bg-purple-100 p-4 rounded-full mb-4 text-purple-700 group-hover:scale-110 transition-transform"><i class="ph-fill ph-play-circle text-4xl"></i></div>
+                    <h3 class="font-bold text-xl mb-2 text-navy-900">Transport & Water Potential</h3>
+                    <p class="text-sm text-gray-500 mb-4">Exam-focused YouTube revision on active transport, co-transport, and water potential calculations.</p>
+                    <span class="text-purple-700 font-bold text-sm uppercase tracking-wider flex items-center gap-1 mt-auto">Watch on YouTube <i class="ph-bold ph-arrow-up-right"></i></span>
+                </a>
+
+                <!-- PAG 5 Beetroot Permeability Video -->
+                <a href="https://www.youtube.com/results?search_query=a+level+biology+beetroot+membrane+permeability+colorimeter+practical" target="_blank" rel="noopener noreferrer" class="bg-white p-6 rounded-2xl border-2 border-lab-300 hover:border-blue-600 transition-colors group shadow-sm flex flex-col items-center text-center">
+                    <div class="bg-blue-100 p-4 rounded-full mb-4 text-blue-600 group-hover:scale-110 transition-transform"><i class="ph-fill ph-flask text-4xl"></i></div>
+                    <h3 class="font-bold text-xl mb-2 text-navy-900">PAG 5: Membrane Permeability</h3>
+                    <p class="text-sm text-gray-500 mb-4">Practical video guide on investigating temperature and alcohol effects on beetroot membranes.</p>
+                    <span class="text-blue-600 font-bold text-sm uppercase tracking-wider flex items-center gap-1 mt-auto">Watch Practical <i class="ph-bold ph-arrow-up-right"></i></span>
+                </a>
+
+                <!-- PAG 8 Osmosis Calibration Curve Video -->
+                <a href="https://www.youtube.com/results?search_query=ocr+a+level+biology+pag+8+osmosis+potato+water+potential" target="_blank" rel="noopener noreferrer" class="bg-white p-6 rounded-2xl border-2 border-lab-300 hover:border-emerald-600 transition-colors group shadow-sm flex flex-col items-center text-center">
+                    <div class="bg-emerald-100 p-4 rounded-full mb-4 text-emerald-600 group-hover:scale-110 transition-transform"><i class="ph-fill ph-chart-line text-4xl"></i></div>
+                    <h3 class="font-bold text-xl mb-2 text-navy-900">PAG 8: Osmosis & Water Potential</h3>
+                    <p class="text-sm text-gray-500 mb-4">Practical video guide on determining plant tissue water potential using calibration curves.</p>
+                    <span class="text-emerald-600 font-bold text-sm uppercase tracking-wider flex items-center gap-1 mt-auto">Watch Practical <i class="ph-bold ph-arrow-up-right"></i></span>
+                </a>
+
+                <!-- PAG 5 Modal Card -->
+                <div class="bg-white p-6 rounded-2xl border-2 border-lab-300 hover:border-blue-500 transition-colors group shadow-sm flex flex-col items-center text-center">
+                    <div class="bg-blue-100 p-4 rounded-full mb-4 text-blue-600 group-hover:scale-110 transition-transform"><i class="ph-fill ph-test-tube text-4xl"></i></div>
+                    <h3 class="font-bold text-xl mb-2 text-navy-900">PAG 5 Summary:<br>Beetroot & Colorimeter</h3>
+                    <p class="text-sm text-gray-500 mb-4">Review variables, colorimeter calibration, and why betalain leaks out of membranes.</p>
+                    <button onclick="openPagModal('pag-beetroot-modal')" class="mt-auto text-white bg-blue-600 hover:bg-blue-700 py-2.5 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-1 w-full cursor-pointer"><i class="ph-bold ph-book-open"></i> Read Method</button>
+                </div>
+
+                <!-- PAG 8 Modal Card -->
+                <div class="bg-white p-6 rounded-2xl border-2 border-lab-300 hover:border-emerald-500 transition-colors group shadow-sm flex flex-col items-center text-center">
+                    <div class="bg-emerald-100 p-4 rounded-full mb-4 text-emerald-600 group-hover:scale-110 transition-transform"><i class="ph-fill ph-scales text-4xl"></i></div>
+                    <h3 class="font-bold text-xl mb-2 text-navy-900">PAG 8 Summary:<br>Water Potential</h3>
+                    <p class="text-sm text-gray-500 mb-4">Review percentage change in mass, isotonic x-intercepts, and standardizing potato cylinders.</p>
+                    <button onclick="openPagModal('pag-osmosis-modal')" class="mt-auto text-white bg-emerald-600 hover:bg-emerald-700 py-2.5 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-1 w-full cursor-pointer"><i class="ph-bold ph-book-open"></i> Read Method</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 6: Dashboard -->
+        <div id="tab-dash" class="tab-content animate-slide-in">
+            <div class="max-w-3xl mx-auto bg-white p-8 rounded-3xl shadow-xl border border-lab-300 relative overflow-hidden">
+                <i class="ph-fill ph-atom text-[15rem] absolute -top-10 -right-10 text-lab-200 opacity-50 pointer-events-none"></i>
+                
+                <div class="mb-8 border-b border-lab-200 pb-4 relative z-10">
+                    <h2 class="text-3xl font-bold text-navy-900">Biological Membranes Dashboard</h2>
+                    <p class="text-sm text-cyan-700 font-bold uppercase tracking-wider mt-1">OCR A Module 2.1.5 • By Mr Reeve</p>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 relative z-10">
+                    <div class="bg-lab-100 p-5 rounded-xl border border-lab-200">
+                        <div class="text-sm font-bold text-gray-500 uppercase flex items-center gap-2 mb-2"><i class="ph-fill ph-arrows-merge text-coral-600 text-lg"></i> Terminology</div>
+                        <div class="text-3xl font-black text-navy-900"><span id="dash-match">0</span> <span class="text-xl text-gray-400 font-medium">/ 18</span></div>
+                    </div>
+                    <div class="bg-lab-100 p-5 rounded-xl border border-lab-200">
+                        <div class="text-sm font-bold text-gray-500 uppercase flex items-center gap-2 mb-2"><i class="ph-fill ph-list-checks text-cyan-600 text-lg"></i> Quiz Engine</div>
+                        <div class="text-3xl font-black text-navy-900"><span id="dash-quiz">0</span> <span class="text-xl text-gray-400 font-medium">/ 30</span></div>
+                    </div>
+                    <div class="bg-lab-100 p-5 rounded-xl border border-lab-200">
+                        <div class="text-sm font-bold text-gray-500 uppercase flex items-center gap-2 mb-2"><i class="ph-fill ph-pen-nib text-navy-700 text-lg"></i> 6-Mark Questions</div>
+                        <div class="text-3xl font-black text-navy-900"><span id="dash-long">0</span> <span class="text-xl text-gray-400 font-medium">/ 36</span></div>
+                    </div>
+                    <div class="bg-lab-100 p-5 rounded-xl border border-lab-200">
+                        <div class="text-sm font-bold text-gray-500 uppercase flex items-center gap-2 mb-2"><i class="ph-fill ph-blueprint text-emerald-600 text-lg"></i> Membrane Labeller</div>
+                        <div class="text-3xl font-black text-navy-900"><span id="dash-diagram">0</span> <span class="text-xl text-gray-400 font-medium">/ 10</span></div>
+                    </div>
+                </div>
+
+                <button onclick="openNameModal()" class="w-full bg-navy-800 hover:bg-navy-900 text-white font-bold uppercase tracking-widest py-4 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 text-lg flex justify-center items-center gap-3 relative z-10 border border-navy-900 cursor-pointer">
+                    <i class="ph-bold ph-printer text-2xl text-cyan-400"></i> Generate Mark Report
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Student Verification Modal -->
+    <div id="name-modal" class="fixed inset-0 bg-navy-900/80 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-2xl max-w-sm w-full shadow-2xl relative border-t-8 border-cyan-500 animate-slide-in text-center">
+            <i class="ph-fill ph-student text-5xl text-navy-800 mb-2"></i>
+            <h2 class="text-2xl font-bold text-navy-900 mb-2">Student Verification</h2>
+            <p class="text-gray-500 font-medium mb-6 text-sm">Enter your name for your official screenshot scorecard.</p>
+            <input type="text" id="student-name-input" class="w-full p-3 border-2 rounded-xl outline-none transition-colors border-lab-300 focus:border-cyan-500 mb-6 bg-lab-100 text-center font-bold text-lg text-navy-900" placeholder="Your Full Name">
+            <button onclick="generateScorecard()" class="w-full py-3 bg-coral-600 hover:bg-coral-700 text-white rounded-xl transition-colors font-bold shadow-md cursor-pointer">Generate Scorecard</button>
+            <button onclick="closeModals()" class="mt-3 text-sm text-gray-400 hover:text-gray-600 font-medium cursor-pointer">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Scorecard Modal -->
+    <div id="scorecard-modal" class="fixed inset-0 bg-navy-900/90 z-[60] hidden items-center justify-center p-4 backdrop-blur-md">
+        <div class="bg-white p-8 rounded-3xl max-w-md w-full shadow-[0_0_50px_rgba(34,211,238,0.35)] relative border-4 border-cyan-400 max-h-[95vh] overflow-y-auto animate-slide-in">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-coral-600 transition-colors cursor-pointer"><i class="ph-fill ph-x-circle text-3xl"></i></button>
+            
+            <div class="text-center mb-6">
+                <div class="animate-atom-bounce inline-block mb-2 text-5xl">🧬</div>
+                <h2 class="font-science text-3xl font-bold text-navy-900 leading-tight">Biological Membranes<br>Lab Report</h2>
+                <p class="text-coral-600 font-bold mt-2 uppercase tracking-widest text-xs">OCR A A-Level Biology • By Mr Reeve</p>
+            </div>
+            
+            <div class="bg-lab-100 p-5 rounded-xl border border-lab-300 mb-6">
+                <div class="flex justify-between border-b border-lab-300 pb-3 mb-3">
+                    <span class="text-gray-500 font-bold uppercase tracking-wider text-xs">Student</span>
+                    <span class="font-bold text-navy-900" id="sc-name"></span>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600 font-medium">Mix & Match</span>
+                        <span class="font-bold text-navy-900"><span id="sc-match">0</span> <span class="text-gray-400">/ 18</span></span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600 font-medium">Knowledge Quiz</span>
+                        <span class="font-bold text-navy-900"><span id="sc-quiz">0</span> <span class="text-gray-400">/ 30</span></span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600 font-medium">Membrane Labeller</span>
+                        <span class="font-bold text-navy-900"><span id="sc-diagram">0</span> <span class="text-gray-400">/ 10</span></span>
+                    </div>
+                    <div class="flex justify-between text-sm border-b border-lab-300 pb-3">
+                        <span class="text-gray-600 font-medium">6-Mark Questions</span>
+                        <span class="font-bold text-navy-900"><span id="sc-long">0</span> <span class="text-gray-400">/ 36</span></span>
+                    </div>
+                    
+                    <!-- Action Plan Breakdown -->
+                    <div class="flex flex-col pt-3 border-b border-lab-300 pb-3">
+                        <div class="flex justify-between items-center text-sm mb-2">
+                            <span class="text-navy-800 font-bold">Action Plan:</span>
+                            <span class="font-bold text-coral-600 bg-rose-50 px-2 py-0.5 rounded text-xs border border-rose-200 hidden" id="sc-bonus-container">+<span id="sc-bonus">0</span> Bonus</span>
+                        </div>
+                        <div id="sc-action-list" class="text-xs text-gray-600 space-y-1 bg-white p-2 rounded border border-lab-200 max-h-24 overflow-y-auto">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-4 text-lg items-center">
+                    <span class="font-bold text-navy-900 uppercase">Total Score:</span>
+                    <div class="text-right">
+                        <div class="font-black text-coral-600 text-3xl"><span id="sc-total">0</span> <span class="text-lg text-gray-400">/ 94</span></div>
+                        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-1"><span id="sc-percent">0</span>% Mastery</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center text-xs text-gray-400 font-medium">
+                <p class="font-bold text-navy-800 mb-1">Thank you for locking in to Biological Membranes revision.</p>
+                <p>OCR A A-Level Biology • By Mr Reeve</p>
+                <p class="mt-1" id="sc-timestamp"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAG 5 Beetroot Modal -->
+    <div id="pag-beetroot-modal" class="fixed inset-0 bg-navy-900/80 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white p-6 rounded-2xl max-w-2xl w-full shadow-2xl relative border-t-8 border-blue-600 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-navy-900 flex items-center gap-2"><i class="ph-fill ph-flask text-blue-600"></i> PAG 5: Beetroot Membrane Permeability</h2>
+                <button onclick="closePagModal('pag-beetroot-modal')" class="text-gray-400 hover:text-coral-600 cursor-pointer"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div class="prose prose-sm text-navy-900 bg-lab-100 p-4 rounded-xl border border-lab-200">
+                <div class="bg-white p-4 rounded-lg border border-blue-200 mb-4 shadow-sm">
+                    <p class="mb-1"><strong class="text-blue-700">Independent Variable:</strong> Temperature (e.g., 20°C to 80°C) OR Ethanol Concentration (%).</p>
+                    <p class="mb-1"><strong class="text-blue-700">Dependent Variable:</strong> Absorbance of surrounding solution measured with a colorimeter (blue/green filter).</p>
+                    <p class="mb-0"><strong class="text-blue-700">Control Variables:</strong> Surface area/size of beetroot cylinders, volume of distilled water, time submerged (e.g., 20 mins), rinsing thoroughly beforehand.</p>
+                </div>
+                <h4 class="font-bold mb-2">OCR A Method & Biological Explanation</h4>
+                <ol class="list-decimal pl-5 space-y-2 font-medium">
+                    <li>Cut equal-sized beetroot cylinders using a cork borer and ruler. Wash thoroughly under running water until clear to remove pigment released from cut cells.</li>
+                    <li>Place cylinders into boiling tubes containing 10cm³ of distilled water equilibrated in thermostatically controlled water baths at set temperatures.</li>
+                    <li>Leave for a fixed time (e.g., 20 minutes), then remove beetroot cylinders carefully with forceps.</li>
+                    <li>Calibrate the colorimeter to zero absorbance using a cuvette of pure distilled water (blank) with a blue/green filter.</li>
+                    <li>Transfer the coloured solution to a clean cuvette and record absorbance.</li>
+                    <li><strong>Biological Explanation:</strong> Higher temperatures increase kinetic energy of phospholipids (increasing fluidity) and denature intrinsic membrane proteins, forming gaps that allow betalain pigment to diffuse out of the vacuole and plasma membrane.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAG 8 Osmosis Modal -->
+    <div id="pag-osmosis-modal" class="fixed inset-0 bg-navy-900/80 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white p-6 rounded-2xl max-w-2xl w-full shadow-2xl relative border-t-8 border-emerald-600 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-navy-900 flex items-center gap-2"><i class="ph-fill ph-scales text-emerald-600"></i> PAG 8: Osmosis & Plant Water Potential</h2>
+                <button onclick="closePagModal('pag-osmosis-modal')" class="text-gray-400 hover:text-coral-600 cursor-pointer"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div class="prose prose-sm text-navy-900 bg-lab-100 p-4 rounded-xl border border-lab-200">
+                <div class="bg-white p-4 rounded-lg border border-emerald-200 mb-4 shadow-sm">
+                    <p class="mb-1"><strong class="text-emerald-700">Independent Variable:</strong> Concentration of sucrose/salt bathing solution (mol dm⁻³).</p>
+                    <p class="mb-1"><strong class="text-emerald-700">Dependent Variable:</strong> Percentage change in mass of potato tissue.</p>
+                    <p class="mb-0"><strong class="text-emerald-700">Control Variables:</strong> Temperature, time submerged, volume of solution, species/age of potato, blotting dry consistently.</p>
+                </div>
+                <h4 class="font-bold mb-2">OCR A Method & Calibration Curve Analysis</h4>
+                <ol class="list-decimal pl-5 space-y-2 font-medium">
+                    <li>Prepare a serial dilution of sucrose solutions (0.0, 0.2, 0.4, 0.6, 0.8, 1.0 mol dm⁻³).</li>
+                    <li>Cut uniform potato cylinders (remove skin as it is impermeable), blot gently with paper towel, and record initial mass (g).</li>
+                    <li>Submerge cylinders in each sucrose concentration for at least 30–40 minutes.</li>
+                    <li>Remove, blot gently using the same technique to remove excess surface water, and record final mass (g).</li>
+                    <li>Calculate <strong>% Change in Mass</strong> = [(Final Mass − Initial Mass) ÷ Initial Mass] × 100 (accounts for differing starting masses).</li>
+                    <li><strong>Determining Water Potential (Ψ):</strong> Plot % change in mass against sucrose concentration. Where the line of best fit crosses the x-axis (0% change), there is no net osmosis—the bathing solution is isotonic to the potato cells. Use a calibration table to convert this molarity into kPa.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP LOGIC -->
+    <script>
+        // --- OCR A 2.1.5 BIOLOGICAL MEMBRANES DATA ---
+        const DATA = {
+            match: [
+                { q: "Fluid mosaic model", a: "Model describing phospholipids moving laterally in a bilayer with scattered proteins forming a mosaic pattern." },
+                { q: "Phospholipid bilayer", a: "Double layer of amphipathic lipids forming the basic selective barrier of all biological membranes (~7 nm thick)." },
+                { q: "Hydrophilic phosphate head", a: "Polar region of a phospholipid that interacts with aqueous intracellular and extracellular environments." },
+                { q: "Hydrophobic fatty acid tails", a: "Non-polar core of the bilayer that prevents water-soluble ions and polar molecules from diffusing freely." },
+                { q: "Cholesterol", a: "Steroid lipid that binds to hydrophobic tails, regulating membrane fluidity and mechanical stability." },
+                { q: "Glycolipid", a: "Lipid with an attached carbohydrate chain acting as a cell-surface recognition marker and stabilizer." },
+                { q: "Glycoprotein", a: "Intrinsic protein with a branched carbohydrate chain acting as a hormone/neurotransmitter receptor or antigen." },
+                { q: "Intrinsic (integral) protein", a: "Protein embedded within or spanning across the phospholipid bilayer (e.g., channel and carrier proteins)." },
+                { q: "Extrinsic (peripheral) protein", a: "Protein bound to the outer or inner surface of the membrane, often providing mechanical support or enzyme activity." },
+                { q: "Simple diffusion", a: "Passive net movement of small, non-polar molecules (e.g., O2, CO2) directly through the phospholipid bilayer down a concentration gradient." },
+                { q: "Facilitated diffusion", a: "Passive net movement of ions or large polar molecules down a concentration gradient via channel or carrier proteins." },
+                { q: "Channel protein", a: "Transmembrane protein forming a water-filled hydrophilic pore allowing specific ions to diffuse across." },
+                { q: "Carrier protein", a: "Transmembrane protein that changes tertiary shape upon binding a specific molecule to transport it across." },
+                { q: "Active transport", a: "Movement of molecules or ions against a concentration gradient using ATP hydrolysis and specific carrier proteins." },
+                { q: "Endocytosis", a: "Bulk transport of materials into a cell by invagination of the plasma membrane to form a vesicle, requiring ATP." },
+                { q: "Exocytosis", a: "Bulk transport of substances out of a cell as secretory vesicles fuse with the plasma membrane, requiring ATP." },
+                { q: "Water potential (Ψ)", a: "Measure of the tendency of water molecules to diffuse from one region to another, measured in kilopascals (kPa)." },
+                { q: "Osmosis", a: "Net diffusion of water molecules from a region of higher water potential to lower water potential across a partially permeable membrane." }
+            ],
+            quiz: [
+                { q: "Why is the cell-surface membrane described as a 'fluid mosaic'?", options: ["Phospholipids and proteins can move laterally within the layer, while proteins are scattered like tiles in a mosaic", "The membrane is made entirely of liquid water and solid carbohydrate tiles", "Phospholipids flip-flop rapidly between layers every millisecond", "The membrane dissolves completely at body temperature"], ans: 0 },
+                { q: "What is the primary role of cholesterol in eukaryotic plasma membranes?", options: ["It binds to hydrophobic fatty acid tails, restricting excessive movement at high temperatures and preventing packing at low temperatures", "It acts as an ATP-driven pump for sodium and potassium ions", "It forms hydrophilic pores for glucose transport", "It acts as the primary energy store of the cell"], ans: 0 },
+                { q: "Which molecules can pass directly through the hydrophobic core of the phospholipid bilayer via simple diffusion?", options: ["Small, non-polar molecules such as oxygen (O2), carbon dioxide (CO2), and steroid hormones", "Charged ions such as Na+, K+, and Cl-", "Large polar molecules such as glucose and amino acids", "Polypeptides and polysaccharides"], ans: 0 },
+                { q: "How does increasing the proportion of unsaturated fatty acid tails affect membrane fluidity?", options: ["Kinks caused by C=C double bonds prevent tight packing, increasing membrane fluidity", "Straight chains pack tightly together, decreasing fluidity", "It permanently denatures all intrinsic proteins", "It prevents cholesterol from binding"], ans: 0 },
+                { q: "What is the water potential (Ψ) of pure distilled water at standard temperature and atmospheric pressure?", options: ["0 kPa (the highest possible water potential)", "-100 kPa", "+100 kPa", "1000 kPa"], ans: 0 },
+                { q: "What happens to a red blood cell placed in a hypotonic solution (higher water potential than the cytoplasm)?", options: ["Water enters by osmosis down a water potential gradient, causing the cell to swell and burst (haemolysis)", "Water leaves by osmosis, causing the cell to crenate (shrink)", "The cell becomes turgid due to its cellulose cell wall", "No net movement of water occurs"], ans: 0 },
+                { q: "What happens to a plant cell placed in a strongly hypertonic sucrose solution?", options: ["Water leaves the vacuole and cytoplasm by osmosis, pulling the plasma membrane away from the cell wall (plasmolysis)", "The plant cell bursts due to high turgor pressure", "Water enters the cell until it becomes turgid", "Active transport pumps sucrose into the vacuole to prevent water loss"], ans: 0 },
+                { q: "Why does the rate of facilitated diffusion plateau at high external substrate concentrations?", options: ["All specific channel or carrier proteins are saturated and operating at their maximum turnover rate", "The phospholipid bilayer runs out of ATP", "The concentration gradient reverses direction", "High substrate concentrations denature the phospholipids"], ans: 0 },
+                { q: "How does active transport differ from facilitated diffusion?", options: ["Active transport moves substances against a concentration gradient using ATP hydrolysis and carrier proteins only", "Active transport uses channel proteins and requires no ATP", "Active transport only transports water molecules", "Active transport moves molecules down a concentration gradient"], ans: 0 },
+                { q: "How does ATP directly enable a carrier protein to perform active transport?", options: ["ATP is hydrolysed to ADP + Pi; the phosphate group binds to the carrier protein, causing a conformational shape change", "ATP dissolves the phospholipid bilayer temporarily", "ATP increases the kinetic energy of the extracellular fluid", "ATP forms a hydrophilic channel through cholesterol"], ans: 0 },
+                { q: "In PAG 5 (beetroot membrane permeability), why does absorbance increase sharply above 50°C?", options: ["Intrinsic membrane proteins denature and phospholipids gain high kinetic energy, creating gaps that leak betalain pigment", "Betalain pigment is synthesized faster at high temperatures", "Water evaporates from the cuvette", "Cold temperatures cause the cell wall to shatter"], ans: 0 },
+                { q: "Why does placing beetroot discs in ethanol cause betalain pigment to leak out?", options: ["Ethanol is a non-polar organic solvent that dissolves the phospholipid bilayer, disrupting membrane integrity", "Ethanol increases turgor pressure until the vacuole explodes", "Ethanol actively pumps betalain out of the cell", "Ethanol lowers the water potential inside the vacuole"], ans: 0 },
+                { q: "What is the main function of glycolipids and glycoproteins on the outer surface of the plasma membrane?", options: ["Cell-to-cell recognition, cell signalling (acting as receptors), and stabilizing the membrane via hydrogen bonds with water", "Hydrolysing ATP during muscle contraction", "Synthesizing phospholipids for the smooth ER", "Transporting oxygen across the alveolar epithelium"], ans: 0 },
+                { q: "Why are bulk transport processes (endocytosis and exocytosis) classified as active processes?", options: ["They require ATP to move cytoskeleton filaments and fuse/pinch off phospholipid vesicles", "They only occur down a steep concentration gradient", "They rely entirely on channel proteins", "They occur spontaneously without cellular energy"], ans: 0 },
+                { q: "In PAG 8 (determining water potential of potato tissue), why must percentage change in mass be calculated rather than raw mass change?", options: ["Potato cylinders have slightly different starting masses, so percentage change allows valid comparison", "Percentage change eliminates the need to blot the cylinders dry", "Raw mass change cannot be negative", "Sucrose concentration is measured as a percentage"], ans: 0 },
+                { q: "At the point where the calibration curve crosses the x-axis (0% change in mass) in PAG 8, what is true?", options: ["The water potential of the potato cells equals the water potential of the external sucrose solution (no net osmosis)", "Osmosis has stopped because all aquaporins are blocked", "The potato cells have completely plasmolysed", "The sucrose concentration is 0 mol dm⁻³"], ans: 0 },
+                { q: "What is an aquaporin?", options: ["A specialized channel protein that facilitates rapid osmosis of water molecules across the hydrophobic bilayer", "A carrier protein that pumps sodium ions using ATP", "A carbohydrate chain attached to cholesterol", "A digestive enzyme secreted by exocytosis"], ans: 0 },
+                { q: "Why do respiratory inhibitors (such as cyanide) immediately stop active transport?", options: ["They halt aerobic respiration and ATP synthesis, preventing phosphorylation of carrier proteins", "They block all channel proteins competitively", "They solidify the phospholipid bilayer", "They reverse the water potential gradient"], ans: 0 },
+                { q: "Which statement accurately describes the orientation of phospholipids in an aqueous environment?", options: ["Hydrophilic phosphate heads face outward toward water; hydrophobic fatty acid tails face inward away from water", "Hydrophobic tails face outward toward water; hydrophilic heads face inward", "Both heads and tails face outward toward the cytoplasm", "Phospholipids arrange in a single monolayer across the cell"], ans: 0 },
+                { q: "What is meant by 'cell signalling' across a plasma membrane?", options: ["A messenger molecule (e.g., hormone) binds to a specific complementary receptor protein on the target cell, triggering an intracellular response", "Cells emit light flashes to communicate across tissues", "All cells share the exact same membrane proteins", "Ions diffuse randomly without specific receptors"], ans: 0 },
+                { q: "In the small intestine, how is glucose absorbed into epithelial cells against its concentration gradient via co-transport?", options: ["Na+ ions diffuse down their gradient through a co-transporter protein, dragging glucose in against its gradient; a Na+/K+ pump maintains the Na+ gradient using ATP", "Glucose enters by simple diffusion through the tails", "Glucose enters via channel proteins without sodium", "Glucose is engulfed by phagocytosis"], ans: 0 },
+                { q: "What is the approximate thickness of a single biological plasma membrane?", options: ["7 nm to 10 nm", "7 µm to 10 µm", "0.7 mm to 1.0 mm", "70 nm to 100 nm"], ans: 0 },
+                { q: "How do temperature drops close to 0°C affect a plasma membrane lacking cholesterol?", options: ["Saturated fatty acid tails pack tightly together, making the membrane rigid and prone to cracking/leaking", "The membrane becomes overly fluid and disintegrates", "Carrier proteins work twice as fast", "Simple diffusion increases exponentially"], ans: 0 },
+                { q: "Why are membranes inside eukaryotic cells (compartmentalisation) essential for metabolism?", options: ["They isolate specific enzymes and reactants into organelles (e.g., lysosomes, mitochondria) and maintain proton gradients for ATP synthesis", "They prevent any substances from ever entering organelles", "They replace the need for DNA in the nucleus", "They stop osmosis from occurring inside cells"], ans: 0 },
+                { q: "Which feature allows channel proteins to be selective for a specific ion (e.g., K+ vs Na+)?", options: ["The specific diameter of the hydrophilic pore and the charge of the amino acid R-groups lining it", "The presence of a glycogen chain on the inside", "The hydrolysis of two ATP molecules per ion", "The temperature of the extracellular fluid"], ans: 0 },
+                { q: "Why must beetroot discs be washed thoroughly before starting PAG 5?", options: ["To remove betalain pigment leaked from cells damaged during cutting, preventing artificially high initial absorbance readings", "To sterilize the beetroot against bacteria", "To dissolve the cellulose cell walls", "To hydrate the phospholipid tails"], ans: 0 },
+                { q: "What is crenation in animal cells?", options: ["Shrivelling and wrinkling of an animal cell when water leaves by osmosis in a hypertonic solution", "Bursting of an animal cell in pure water", "Division of a cell by mitosis", "Secretion of mucus via exocytosis"], ans: 0 },
+                { q: "How do receptor proteins ensure target-cell specificity for hormones like insulin?", options: ["Their tertiary structure forms a binding site with a specific shape complementary only to the insulin molecule", "They use ATP to pull any hormone into the cytoplasm", "They digest non-target hormones", "They are made of cellulose"], ans: 0 },
+                { q: "Which type of transport is used by phagocytes to engulf pathogens?", options: ["Phagocytosis (a form of endocytosis requiring ATP)", "Facilitated diffusion via channel proteins", "Simple diffusion through the bilayer", "Osmosis"], ans: 0 },
+                { q: "If Cell A has a water potential of -450 kPa and adjacent Cell B has a water potential of -650 kPa, which way will water move?", options: ["From Cell A to Cell B (from higher/less negative Ψ to lower/more negative Ψ)", "From Cell B to Cell A", "No net movement will occur", "Water will move equally in both directions"], ans: 0 }
+            ],
+            long: [
+                {
+                    q: "Describe the fluid mosaic model of membrane structure and explain the roles of its key components. (6 marks)",
+                    low: "The membrane is made of a phospholipid bilayer with proteins in it. It is called fluid mosaic because things can move around. There is cholesterol to make it strong and glycoproteins on the outside for cell recognition.",
+                    med: "The membrane consists of a phospholipid bilayer where hydrophilic heads face outward and hydrophobic tails face inward. It is fluid because phospholipids and proteins move laterally, and mosaic because proteins are scattered throughout. Intrinsic proteins act as channels and carriers for transport. Cholesterol regulates fluidity, while glycoproteins and glycolipids act as receptors and antigens.",
+                    high: "1. Phospholipid bilayer forms the basic barrier: hydrophilic phosphate heads face aqueous solutions; hydrophobic fatty acid tails form a non-polar core.\n2. 'Fluid' because phospholipids and proteins can move laterally within their monolayer; 'mosaic' because diverse proteins are scattered throughout.\n3. Intrinsic (transmembrane) proteins include channel proteins (hydrophilic pores for facilitated diffusion of ions) and carrier proteins (change shape for facilitated diffusion and active transport).\n4. Extrinsic (peripheral) proteins provide mechanical support (linked to cytoskeleton) or act as enzymes.\n5. Cholesterol sits between hydrophobic tails, regulating membrane fluidity and enhancing mechanical stability.\n6. Glycoproteins and glycolipids have branched carbohydrate chains on the outer surface for cell signalling (receptors) and cell recognition (antigens)."
+                },
+                {
+                    q: "Compare and contrast the processes of simple diffusion, facilitated diffusion, and active transport across cell membranes. (6 marks)",
+                    low: "Simple diffusion and facilitated diffusion are passive and go from high to low concentration. Facilitated diffusion uses proteins. Active transport needs ATP energy and goes from low to high concentration.",
+                    med: "Simple and facilitated diffusion are both passive processes moving molecules down a concentration gradient without ATP. Simple diffusion happens directly through the phospholipid bilayer for small non-polar molecules, whereas facilitated diffusion uses channel or carrier proteins for ions and polar molecules. Active transport uses ATP to move substances against a concentration gradient via carrier proteins.",
+                    high: "1. Simple and facilitated diffusion are both passive processes (no ATP required) involving net movement down a concentration gradient.\n2. Simple diffusion occurs directly through the phospholipid bilayer for small, non-polar molecules (e.g., O2, CO2), whereas facilitated diffusion requires transmembrane channel or carrier proteins for polar molecules or ions.\n3. Active transport moves substances against a concentration gradient (low to high) and requires ATP hydrolysis.\n4. Active transport uses specific carrier proteins only (never channel proteins); ATP phosphorylates the carrier protein to trigger a conformational shape change.\n5. Both facilitated diffusion and active transport exhibit saturation kinetics (rate plateaus when all transport proteins are occupied), unlike simple diffusion.\n6. Active transport is inhibited by respiratory poisons (e.g., cyanide) that halt ATP production, whereas diffusion is unaffected."
+                },
+                {
+                    q: "Explain how temperature and organic solvents (such as ethanol) affect the permeability of cell membranes, referencing PAG 5 (beetroot). (6 marks)",
+                    low: "If you heat beetroot up, the membrane breaks and red dye comes out. If you put it in alcohol, the alcohol dissolves the membrane so more dye leaks out into the water.",
+                    med: "At low temperatures, phospholipids have little kinetic energy and pack closely, making the membrane rigid. As temperature increases, kinetic energy increases so phospholipids move more and permeability rises. Above 50°C, membrane proteins denature and the bilayer breaks down, letting betalain pigment leak out. Ethanol dissolves the non-polar phospholipid tails, disrupting the bilayer and increasing permeability.",
+                    high: "1. Below 0°C, phospholipids have low kinetic energy and pack tightly; ice crystals may pierce the membrane, causing leakage upon thawing.\n2. Between 0°C and ~40°C, increasing temperature increases kinetic energy of phospholipids, increasing fluidity and slight permeability.\n3. Above ~50°C, high kinetic energy causes intrinsic membrane proteins to vibrate and break hydrogen/ionic bonds, leading to denaturation.\n4. Denatured proteins unfold and leave gaps in the bilayer, allowing water-soluble betalain pigment to diffuse rapidly out of the vacuole and plasma membrane.\n5. Organic solvents like ethanol are non-polar and dissolve the hydrophobic fatty acid tails of the phospholipid bilayer.\n6. Higher ethanol concentrations disrupt the bilayer structure further, increasing permeability and producing a higher colorimeter absorbance."
+                },
+                {
+                    q: "Explain what happens to an animal cell (e.g., erythrocyte) and a plant cell when placed in pure water and when placed in a concentrated salt solution. (6 marks)",
+                    low: "In pure water, water goes into the cells by osmosis. The animal cell bursts, and the plant cell swells up. In concentrated salt solution, water leaves both cells and they shrink.",
+                    med: "Pure water has a higher water potential (0 kPa) than the cells, so water enters by osmosis down a water potential gradient. The animal cell swells and bursts (haemolysis) because it has no cell wall. The plant cell swells and becomes turgid as the cell wall resists expansion. In concentrated salt solution, water leaves by osmosis; the animal cell crenates (shrinks) and the plant cell undergoes plasmolysis.",
+                    high: "1. Pure water has the highest water potential (0 kPa), higher than the cell cytoplasm (negative Ψ), so water enters both cells by osmosis down a water potential gradient.\n2. The animal cell lacks a cell wall, so continuous water influx causes it to swell and burst (cytolysis / haemolysis).\n3. In the plant cell, water enters the vacuole and cytoplasm, pushing the plasma membrane against the inelastic cellulose cell wall, generating hydrostatic turgor pressure until the cell becomes turgid (preventing bursting).\n4. Concentrated salt solution has a lower (more negative) water potential than the cytoplasm, so water leaves both cells by osmosis.\n5. The animal cell loses volume, shrinks, and becomes wrinkled (crenation).\n6. In the plant cell, the vacuole shrinks and the plasma membrane pulls away from the cell wall (plasmolysis), making the cell flaccid."
+                },
+                {
+                    q: "Describe how a student could determine the water potential of potato tuber tissue experimentally (PAG 8). (6 marks)",
+                    low: "Cut potato chips and weigh them. Put them in different sugar solutions for 30 minutes. Take them out, dry them, and weigh them again. Work out the percentage change in mass and draw a graph to find where it crosses zero.",
+                    med: "Make a dilution series of sucrose solutions of known concentrations. Cut equal-sized potato cylinders, blot them dry, and record initial mass. Submerge in the solutions for 40 minutes, blot dry, and record final mass. Calculate percentage change in mass. Plot a graph of % change in mass against sucrose concentration. Where the line crosses 0% change, the solution is isotonic to the potato, and water potential can be found from a calibration table.",
+                    high: "1. Prepare a serial dilution of sucrose solutions covering a wide range of molarities (e.g., 0.0 to 1.0 mol dm⁻³).\n2. Cut uniform potato cylinders (removing skin), blot gently with paper towel, and measure initial mass using a digital balance.\n3. Submerge cylinders in equal volumes of each sucrose solution at a controlled temperature (water bath) for a fixed time (e.g., 40 minutes).\n4. Remove cylinders, blot dry consistently to remove surface liquid without squeezing out cell sap, and record final mass.\n5. Calculate percentage change in mass: [(final mass − initial mass) ÷ initial mass] × 100 to allow valid comparison across differing starting masses.\n6. Plot % change in mass against sucrose concentration; the x-intercept (0% change) indicates the isotonic concentration where net osmosis is zero, which converts to water potential (kPa) via a standard reference table."
+                },
+                {
+                    q: "Explain the roles of cell-surface membranes in cell signalling and bulk transport (endocytosis and exocytosis). (6 marks)",
+                    low: "Cell signalling is when hormones bind to receptors on the membrane to tell the cell what to do. Endocytosis is when the membrane folds in to take things into the cell. Exocytosis is when vesicles join the membrane to let things out.",
+                    med: "Membranes contain glycoproteins and glycolipids that act as specific receptors for messenger molecules like hormones. When the messenger binds to the complementary receptor, it triggers a response inside the cell. Endocytosis and exocytosis are active bulk transport processes requiring ATP. In endocytosis, the membrane invaginates to form a vesicle around large particles. In exocytosis, vesicles fuse with the plasma membrane to release contents.",
+                    high: "1. Cell signalling allows cells to communicate: target cells possess specific membrane-bound receptor proteins (glycoproteins/glycolipids) with a tertiary shape complementary to a messenger molecule (e.g., hormone or neurotransmitter).\n2. Binding of the messenger to the receptor triggers an intracellular cascade or opens ion channels, altering cell activity.\n3. Large molecules (e.g., enzymes, hormones) or whole microorganisms cannot pass through carrier/channel proteins and require bulk transport.\n4. Endocytosis (phagocytosis/pinocytosis) involves the plasma membrane invaginating (folding inward) to engulf material, pinching off to form an intracellular vesicle.\n5. Exocytosis involves secretory vesicles (e.g., from the Golgi apparatus) moving along cytoskeleton microtubules and fusing with the plasma membrane to release contents extracellularly.\n6. Both endocytosis and exocytosis are active processes requiring ATP hydrolysis to remodel the cytoskeleton and fuse phospholipid bilayers."
+                }
+            ]
+        };
+
+        let state = {
+            match: { q: null, a: null, solved: [], batch: 0, qs: [], as: [] },
+            quiz: { queue: [], retry: [], current: null, correct: 0 },
+            long: { scores: {}, current: 0, answers: {} },
+            diagram: { correct: 0, activeLabelId: null, activeLabelEl: null },
+            streak: 0
+        };
+
+        let actionState = {
+            pastPapers: false,
+            rewatchPAGs: false,
+            flashcards: false,
+            glossary: false,
+            copyWork: false,
+            seeTeacher: false,
+            none: false,
+            flashcardTopic: "",
+            glossaryWords: "",
+            copyWho: "",
+            copyDate: "",
+            teacherDate: ""
+        };
+
+        // Initialize App
+        function initApp() {
+            // Shuffle Match
+            const mData = [...DATA.match].sort(() => Math.random() - 0.5);
+            state.match.qs = mData.map((m, i) => ({ t: m.q, id: i })).sort(() => Math.random() - 0.5);
+            state.match.as = mData.map((m, i) => ({ t: m.a, id: i })).sort(() => Math.random() - 0.5);
+            
+            loadMatchBatch();
+
+            // Initialize Quiz
+            state.quiz.queue = DATA.quiz.map(q => {
+                const ansText = q.options[q.ans];
+                const shuffled = [...q.options].sort(() => Math.random() - 0.5);
+                return { ...q, options: shuffled, ans: shuffled.indexOf(ansText) };
+            }).sort(() => Math.random() - 0.5);
+            nextQuiz();
+
+            // Initialize Long Answers
+            renderLong();
+        }
+
+        // --- Navigation & Splash ---
+        function enterApp() {
+            document.getElementById('splash-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('splash-screen').classList.add('hidden');
+                document.getElementById('app-header').classList.remove('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                document.getElementById('main-body').classList.remove('overflow-hidden');
+                initApp();
+            }, 800);
+        }
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'border-coral-600', 'text-coral-600'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const btn = document.getElementById(`nav-${id}`);
+            btn.classList.add('active');
+            document.getElementById(`tab-${id}`).classList.add('active');
+
+            if (id === 'dash') updateDashboard();
+        }
+
+        // Action Plan Logic
+        function toggleAction(action) {
+            const cb = document.getElementById(`chk-${action}`);
+            if (action === 'none') {
+                if (cb.checked) {
+                    ['pastPapers', 'rewatchPAGs', 'flashcards', 'glossary', 'copyWork', 'seeTeacher'].forEach(a => {
+                        document.getElementById(`chk-${a}`).checked = false;
+                        actionState[a] = false;
+                    });
+                }
+            } else {
+                if (cb.checked) {
+                    document.getElementById('chk-none').checked = false;
+                    actionState.none = false;
+                }
+            }
+            actionState[action] = cb.checked;
+            
+            // Toggle conditional inputs
+            document.getElementById('input-flashcards').classList.toggle('hidden', !actionState.flashcards);
+            document.getElementById('input-glossary').classList.toggle('hidden', !actionState.glossary);
+            document.getElementById('input-copyWork').classList.toggle('hidden', !actionState.copyWork);
+            document.getElementById('input-seeTeacher').classList.toggle('hidden', !actionState.seeTeacher);
+        }
+
+        function submitActionPlan() {
+            if (actionState.flashcards) actionState.flashcardTopic = document.getElementById('val-flashcards').value.trim();
+            if (actionState.glossary) actionState.glossaryWords = document.getElementById('val-glossary').value.trim();
+            if (actionState.copyWork) {
+                actionState.copyWho = document.getElementById('val-copyWho').value.trim();
+                actionState.copyDate = document.getElementById('val-copyDate').value.trim();
+            }
+            if (actionState.seeTeacher) actionState.teacherDate = document.getElementById('val-seeTeacher').value.trim();
+
+            document.getElementById('action-plan-section').classList.add('hidden');
+            document.getElementById('resources-grid').classList.remove('hidden');
+            document.getElementById('resources-intro').innerText = "Exam Prep & Resources unlocked. Use these past papers, YouTube tutorials, and PAG summaries to complete your action plan.";
+        }
+
+        function updateStreak(isCorrect) {
+            const icon = document.getElementById('streak-icon');
+            if (isCorrect) {
+                state.streak++;
+                icon.classList.remove('animate-atom-bounce', 'animate-flash-red');
+                void icon.offsetWidth;
+                icon.classList.add('animate-atom-bounce');
+            } else {
+                state.streak = 0;
+                icon.classList.remove('animate-atom-bounce', 'animate-flash-red');
+                void icon.offsetWidth;
+                icon.classList.add('animate-flash-red');
+            }
+            document.getElementById('streak-counter').innerText = state.streak;
+        }
+
+        // Match Logic
+        function loadMatchBatch() {
+            const qCol = document.getElementById('match-col-q');
+            const aCol = document.getElementById('match-col-a');
+            qCol.innerHTML = ''; aCol.innerHTML = '';
+            
+            document.getElementById('match-round').innerText = state.match.batch + 1;
+            
+            const start = state.match.batch * 6;
+            const end = start + 6;
+            
+            const currentQs = state.match.qs.filter(item => item.id >= start && item.id < end);
+            const currentAs = state.match.as.filter(item => item.id >= start && item.id < end);
+
+            currentQs.forEach(item => {
+                if(state.match.solved.includes(item.id)) return;
+                const btn = document.createElement('button');
+                btn.className = `match-q w-full text-left p-4 rounded-xl shadow border-2 border-lab-200 bg-white font-semibold hover:border-coral-600 transition-all text-navy-900 cursor-pointer`;
+                btn.innerText = item.t;
+                btn.dataset.id = item.id;
+                btn.onclick = () => handleMatch('q', item.id, btn);
+                qCol.appendChild(btn);
+            });
+            currentAs.forEach(item => {
+                if(state.match.solved.includes(item.id)) return;
+                const btn = document.createElement('button');
+                btn.className = `match-a w-full text-left p-4 rounded-xl shadow border-2 border-lab-200 bg-white font-medium hover:border-cyan-500 transition-all text-navy-900 cursor-pointer`;
+                btn.innerText = item.t;
+                btn.dataset.id = item.id;
+                btn.onclick = () => handleMatch('a', item.id, btn);
+                aCol.appendChild(btn);
+            });
+        }
+
+        function handleMatch(type, id, btn) {
+            if (state.match.solved.includes(id)) return;
+
+            document.querySelectorAll(`.match-${type}`).forEach(b => {
+                if(!state.match.solved.includes(parseInt(b.dataset.id))) b.classList.remove('border-coral-600', 'bg-rose-50', 'border-cyan-500', 'bg-cyan-50');
+            });
+
+            if (type === 'q') {
+                state.match.q = state.match.q === id ? null : id;
+                if(state.match.q !== null) btn.classList.add('border-coral-600', 'bg-rose-50');
+            } else {
+                state.match.a = state.match.a === id ? null : id;
+                if(state.match.a !== null) btn.classList.add('border-cyan-500', 'bg-cyan-50');
+            }
+
+            if (state.match.q !== null && state.match.a !== null) {
+                if (state.match.q === state.match.a) {
+                    state.match.solved.push(state.match.q);
+                    document.querySelector(`.match-q[data-id="${state.match.q}"]`).classList.add('hidden');
+                    document.querySelector(`.match-a[data-id="${state.match.a}"]`).classList.add('hidden');
+                    updateStreak(true);
+                    
+                    const batchSolved = state.match.solved.filter(sid => sid >= state.match.batch * 6 && sid < (state.match.batch + 1) * 6).length;
+                    
+                    if (state.match.solved.length === 18) {
+                        document.getElementById('match-grid').classList.add('hidden');
+                        document.getElementById('match-complete').classList.remove('hidden');
+                    } else if (batchSolved === 6) {
+                        setTimeout(() => {
+                            state.match.batch++;
+                            loadMatchBatch();
+                        }, 450);
+                    }
+                } else {
+                    const qb = document.querySelector(`.match-q[data-id="${state.match.q}"]`);
+                    const ab = document.querySelector(`.match-a[data-id="${state.match.a}"]`);
+                    qb.classList.add('animate-shake'); ab.classList.add('animate-shake');
+                    updateStreak(false);
+                    setTimeout(() => { qb.classList.remove('animate-shake', 'border-coral-600', 'bg-rose-50'); ab.classList.remove('animate-shake', 'border-cyan-500', 'bg-cyan-50'); }, 500);
+                }
+                state.match.q = null; state.match.a = null;
+                document.getElementById('match-score').innerText = state.match.solved.length;
+            }
+        }
+
+        // Cell Membrane Diagram Labeller Logic
+        function handleLabelClick(id, element) {
+            if (element.classList.contains('correct')) return;
+            
+            document.querySelectorAll('.tap-item').forEach(el => {
+                if (!el.classList.contains('correct')) el.classList.remove('selected');
+            });
+            
+            if (state.diagram.activeLabelId === id) {
+                state.diagram.activeLabelId = null;
+                state.diagram.activeLabelEl = null;
+            } else {
+                element.classList.add('selected');
+                state.diagram.activeLabelId = id;
+                state.diagram.activeLabelEl = element;
+            }
+        }
+
+        function handleZoneClick(answerId, element) {
+            if (!state.diagram.activeLabelId) return;
+            if (element.dataset.solved === "true") return;
+
+            if (state.diagram.activeLabelId === answerId) {
+                // Correct match
+                element.dataset.solved = "true";
+                element.innerHTML = `<span class="text-[11px] font-black text-emerald-700 uppercase mb-0.5">Number ${answerId} ✓</span>`;
+                element.appendChild(state.diagram.activeLabelEl);
+                element.classList.add('bg-emerald-50', 'border-emerald-600');
+                state.diagram.activeLabelEl.classList.remove('selected');
+                state.diagram.activeLabelEl.classList.add('correct');
+                
+                state.diagram.correct++;
+                document.getElementById('diagram-score').innerText = state.diagram.correct;
+                updateStreak(true);
+                
+                state.diagram.activeLabelId = null;
+                state.diagram.activeLabelEl = null;
+            } else {
+                // Incorrect match
+                updateStreak(false);
+                element.classList.add('animate-shake', 'border-coral-600', 'bg-rose-50');
+                setTimeout(() => element.classList.remove('animate-shake', 'border-coral-600', 'bg-rose-50'), 450);
+            }
+        }
+
+        // Quiz Logic
+        function nextQuiz() {
+            if (state.quiz.queue.length === 0) {
+                if (state.quiz.retry.length > 0) {
+                    state.quiz.queue = state.quiz.retry.sort(() => Math.random() - 0.5);
+                    state.quiz.retry = [];
+                } else {
+                    document.getElementById('quiz-container').classList.add('hidden');
+                    document.getElementById('quiz-complete').classList.remove('hidden');
+                    document.getElementById('quiz-progress').innerText = `30 / 30`;
+                    return;
+                }
+            }
+            state.quiz.current = state.quiz.queue.shift();
+            document.getElementById('quiz-progress').innerText = `${state.quiz.correct} / 30`;
+            document.getElementById('quiz-question').innerText = state.quiz.current.q;
+            
+            const opts = document.getElementById('quiz-options');
+            opts.innerHTML = '';
+            state.quiz.current.options.forEach((o, i) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-xl border border-navy-700 bg-navy-800 hover:border-cyan-400 transition-colors font-medium cursor-pointer";
+                btn.innerText = o;
+                btn.onclick = () => handleQuiz(i, btn);
+                opts.appendChild(btn);
+            });
+        }
+
+        function handleQuiz(selIdx, btn) {
+            const isCorrect = selIdx === state.quiz.current.ans;
+            const allBtns = document.getElementById('quiz-options').children;
+            for(let i=0; i<allBtns.length; i++) {
+                allBtns[i].className = "w-full text-left p-4 rounded-xl border border-navy-700 bg-navy-900 opacity-50 pointer-events-none";
+                if (i === selIdx) {
+                    if (isCorrect) allBtns[i].className = "w-full text-left p-4 rounded-xl border-2 border-cyan-400 bg-cyan-500/20 text-cyan-400 font-bold pointer-events-none shadow-[0_0_15px_rgba(34,211,238,0.3)]";
+                    else allBtns[i].className = "w-full text-left p-4 rounded-xl border-2 border-coral-600 bg-coral-700/20 text-rose-400 font-bold pointer-events-none animate-shake";
+                }
+                if (i === state.quiz.current.ans && !isCorrect) {
+                    allBtns[i].className = "w-full text-left p-4 rounded-xl border-2 border-cyan-400/50 bg-navy-800 text-lab-200 border-dashed pointer-events-none";
+                }
+            }
+
+            if (isCorrect) {
+                state.quiz.correct++;
+                updateStreak(true);
+            } else {
+                state.quiz.retry.push(state.quiz.current);
+                updateStreak(false);
+            }
+            setTimeout(nextQuiz, 1100);
+        }
+
+        // Long Answers
+        function renderLong() {
+            const lCont = document.getElementById('long-list');
+            lCont.innerHTML = '';
+            
+            if (state.long.current >= DATA.long.length) {
+                lCont.innerHTML = `
+                    <div class="text-center py-10 bg-emerald-50 border border-emerald-500 rounded-xl text-emerald-800">
+                        <i class="ph-fill ph-check-circle text-6xl mb-2 text-emerald-600"></i>
+                        <h3 class="text-2xl font-bold">All 6-Mark Extended Responses Complete!</h3>
+                        <p class="mt-2">Check your Dashboard tab to generate your final mark report.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const i = state.long.current;
+            const item = DATA.long[i];
+            const div = document.createElement('div');
+            div.className = "bg-white p-6 rounded-2xl shadow-sm border border-lab-300 animate-slide-in";
+            const isMarked = state.long.scores[i] !== undefined;
+            const currentAnswer = state.long.answers[i] || '';
+
+            div.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg text-navy-900"><span class="bg-lab-200 text-navy-800 px-3 py-1 rounded-lg mr-2">Question ${i+1} of 6</span></h3>
+                </div>
+                <h3 class="font-bold text-lg text-navy-900 mb-4">${item.q}</h3>
+                
+                <textarea id="long-in-${i}" class="w-full h-36 p-4 border border-lab-300 rounded-xl mb-4 outline-none focus:border-cyan-600 bg-lab-100" placeholder="Write your full A-Level biological explanation here..." oninput="state.long.answers[${i}] = this.value" ${isMarked ? 'disabled' : ''}>${currentAnswer}</textarea>
+                
+                ${!isMarked ? `<button onclick="revealLong(${i})" id="btn-reveal-${i}" class="w-full bg-navy-800 hover:bg-navy-900 text-white font-bold py-3 rounded-xl transition-colors cursor-pointer">Submit & Reveal Mark Scheme</button>` : ''}
+                
+                <div id="long-fb-${i}" class="${isMarked ? '' : 'hidden'} mt-6 space-y-4">
+                    <div class="bg-rose-50 p-4 rounded-xl border border-rose-200"><strong class="text-rose-700 block mb-1">Level 1 (1–2 Marks)</strong><p class="text-sm text-navy-900">${item.low}</p></div>
+                    <div class="bg-amber-50 p-4 rounded-xl border border-amber-200"><strong class="text-amber-700 block mb-1">Level 2 (3–4 Marks)</strong><p class="text-sm text-navy-900">${item.med}</p></div>
+                    <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200"><strong class="text-emerald-700 block mb-1">Level 3 (5–6 Marks)</strong><p class="text-sm text-navy-900 whitespace-pre-line">${item.high}</p></div>
+                    <div class="mt-4 border-t border-lab-200 pt-4">
+                        <p class="font-bold text-navy-800 mb-2">Award yourself marks (0–6):</p>
+                        <div class="flex gap-2 flex-wrap mb-4">
+                            ${[0,1,2,3,4,5,6].map(m => `<button onclick="setLongScore(${i},${m})" class="long-score-${i} w-10 h-10 rounded-lg border border-lab-300 font-bold text-navy-800 hover:bg-coral-600 hover:text-white transition-colors cursor-pointer ${state.long.scores[i] === m ? 'bg-coral-600 text-white border-coral-700 shadow-md scale-110' : ''}">${m}</button>`).join('')}
+                        </div>
+                        <button onclick="nextLong()" class="w-full bg-coral-600 hover:bg-coral-700 text-white font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2 cursor-pointer">Next Question <i class="ph-bold ph-arrow-right"></i></button>
+                    </div>
+                </div>
+            `;
+            lCont.appendChild(div);
+        }
+
+        function revealLong(i) {
+            document.getElementById(`long-in-${i}`).disabled = true;
+            document.getElementById(`btn-reveal-${i}`).classList.add('hidden');
+            document.getElementById(`long-fb-${i}`).classList.remove('hidden');
+        }
+
+        function setLongScore(qId, score) {
+            state.long.scores[qId] = score;
+            renderLong();
+        }
+        
+        function nextLong() {
+            state.long.current++;
+            renderLong();
+        }
+
+        // Dashboard & Scorecard
+        function updateDashboard() {
+            document.getElementById('dash-match').innerText = state.match.solved.length;
+            document.getElementById('dash-quiz').innerText = state.quiz.correct;
+            document.getElementById('dash-diagram').innerText = state.diagram.correct;
+            
+            const longTotal = Object.values(state.long.scores).reduce((a,b)=>a+b,0);
+            document.getElementById('dash-long').innerText = longTotal;
+        }
+
+        function openNameModal() {
+            document.getElementById('name-modal').classList.remove('hidden');
+            document.getElementById('name-modal').classList.add('flex');
+        }
+        function closeModals() {
+            document.getElementById('name-modal').classList.add('hidden');
+            document.getElementById('name-modal').classList.remove('flex');
+            document.getElementById('scorecard-modal').classList.add('hidden');
+            document.getElementById('scorecard-modal').classList.remove('flex');
+        }
+        function openPagModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+        }
+        function closePagModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+        }
+
+        function generateScorecard() {
+            const nameInput = document.getElementById('student-name-input');
+            const name = nameInput.value.trim();
+            if(!name) {
+                nameInput.classList.add('border-coral-600', 'animate-shake');
+                setTimeout(() => nameInput.classList.remove('border-coral-600', 'animate-shake'), 500);
+                return;
+            }
+            
+            closeModals();
+            document.getElementById('sc-name').innerText = name;
+            document.getElementById('sc-match').innerText = state.match.solved.length;
+            document.getElementById('sc-quiz').innerText = state.quiz.correct;
+            document.getElementById('sc-diagram').innerText = state.diagram.correct;
+            
+            const longTotal = Object.values(state.long.scores).reduce((a,b)=>a+b,0);
+            document.getElementById('sc-long').innerText = longTotal;
+            
+            // Calculate Bonus Marks & Render List
+            let bonus = 0;
+            let actionListHtml = "";
+            
+            if (actionState.pastPapers) { bonus += 3; actionListHtml += "<div>• OCR A Module 2.1.5 past papers</div>"; }
+            if (actionState.rewatchPAGs) { bonus += 3; actionListHtml += "<div>• Rewatch PAG 5 & PAG 8 practicals</div>"; }
+            if (actionState.flashcards) { 
+                if (actionState.flashcardTopic) bonus += 3;
+                actionListHtml += `<div>• Flashcards (Focus: <span class="font-bold text-navy-900">${actionState.flashcardTopic || 'None'}</span>)</div>`; 
+            }
+            if (actionState.glossary) { 
+                if (actionState.glossaryWords) bonus += 3;
+                actionListHtml += `<div>• Glossary (Terms: <span class="font-bold text-navy-900">${actionState.glossaryWords || 'None'}</span>)</div>`; 
+            }
+            if (actionState.copyWork) { 
+                if (actionState.copyWho || actionState.copyDate) bonus += 3;
+                actionListHtml += `<div>• Copy work (From: <span class="font-bold text-navy-900">${actionState.copyWho || 'N/A'}</span> on <span class="font-bold text-navy-900">${actionState.copyDate || 'N/A'}</span>)</div>`; 
+            }
+            if (actionState.seeTeacher) { 
+                if (actionState.teacherDate) bonus += 3;
+                actionListHtml += `<div>• See Mr Reeve (Date: <span class="font-bold text-navy-900">${actionState.teacherDate || 'N/A'}</span>)</div>`; 
+            }
+            
+            if (actionState.none || actionListHtml === "") {
+                actionListHtml = "<div class='italic text-gray-400'>No actions selected.</div>";
+            }
+
+            document.getElementById('sc-action-list').innerHTML = actionListHtml;
+            
+            const bonusContainer = document.getElementById('sc-bonus-container');
+            if (bonus > 0) {
+                bonusContainer.classList.remove('hidden');
+                document.getElementById('sc-bonus').innerText = bonus;
+            } else {
+                bonusContainer.classList.add('hidden');
+            }
+            
+            const total = state.match.solved.length + state.quiz.correct + state.diagram.correct + longTotal + bonus;
+            const max = 94; // Base max (18 match + 30 quiz + 10 diagram + 36 long)
+            
+            document.getElementById('sc-total').innerText = total;
+            document.getElementById('sc-percent').innerText = Math.round((total/max)*100);
+            document.getElementById('sc-timestamp').innerText = new Date().toLocaleString();
+            
+            document.getElementById('scorecard-modal').classList.remove('hidden');
+            document.getElementById('scorecard-modal').classList.add('flex');
+
+            // Speech synthesis feedback
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance("Thank you for locking in to your biological membranes revision today.");
+                const voices = window.speechSynthesis.getVoices();
+                const ukVoice = voices.find(voice => voice.lang === 'en-GB');
+                if (ukVoice) {
+                    utterance.voice = ukVoice;
+                }
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+    </script>
+</body>
+</html>
